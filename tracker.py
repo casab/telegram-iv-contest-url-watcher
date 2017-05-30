@@ -1,9 +1,9 @@
+import requests, sys, logging, shelve
 from telegram.ext import Updater, CommandHandler, Job
 from bs4 import BeautifulSoup
-import requests
 from collections import defaultdict
-import sys
-import logging
+from persist import PersistentDict
+import os
 
 if sys.version_info.major == 3:
     from urllib.parse import urlparse
@@ -16,7 +16,8 @@ TELEGRAM_API_TOKEN = ''
 # Check every CHECK_PERIOD seconds to see if any url is added
 CHECK_PERIOD = 60
 
-url_list = defaultdict(list)
+URL_LIST_FILE = os.getcwd() + '\\url_list.json'
+JOB_LIST_FILE = os.getcwd() + '\\job_list.json'
 jobs = defaultdict(list)
 
 logging.basicConfig(
@@ -39,6 +40,32 @@ def start(bot, update):
       /stop
     """)
 
+def get_url_list(chat_id):
+    chat_id = str(chat_id)
+    with PersistentDict(URL_LIST_FILE, 'c', format='json') as d:
+        if chat_id in d.keys():
+            url_list = d[chat_id]
+        else:
+            url_list = []
+    return url_list
+
+def add_to_url_list(url, chat_id):
+    chat_id = str(chat_id)
+    with PersistentDict(URL_LIST_FILE, 'c', format='json') as d:
+        if chat_id not in d.keys():
+            d[chat_id] = [url]
+        else:
+            temp = d[chat_id]
+            temp.append(url)
+            d[chat_id] = temp
+
+def remove_from_url_list(url, chat_id):
+    chat_id = str(chat_id)
+    with PersistentDict(URL_LIST_FILE, 'c', format='json') as d:
+        temp = d[chat_id]
+        temp.remove(url)
+        d[chat_id] = temp
+
 def url_formatter(url):
     parsed = urlparse(url)
     if (parsed.path):
@@ -54,25 +81,29 @@ def add(bot, update, args):
     url = url_formatter(args[0])
     if (not url):
         update.message.reply_text("Incorrect url")
-    elif (url in url_list[update.message.chat_id]):
+    elif (url in get_url_list(update.message.chat_id)):
         update.message.reply_text("Already on watchlist")
     else:
-        url_list[update.message.chat_id].append(url)
+        add_to_url_list(url, update.message.chat_id)
 
 def remove(bot, update, args):
     url = url_formatter(args[0])
     if (not url):
         update.message.reply_text("Incorrect url")
+    elif (url not in get_url_list(update.message.chat_id)):
+        update.message.reply_text("That url is not on the watchlist")
     else:
-        url_list[update.message.chat_id].remove(url)
+        remove_from_url_list(url, update.message.chat_id)
 
 def get_watchlist(bot, update):
-    update.message.reply_text("\n".join(url_list[update.message.chat_id]))
+    url_list = get_url_list(update.message.chat_id)
+    update.message.reply_text("\n".join(url_list))
 
 def check_urls(bot, job):
     r = requests.get('https://instantview.telegram.org/contest')
     page = BeautifulSoup(r.text, 'html5lib')
-    for url in url_list[job.context]:
+    url_list = get_url_list(job.context)
+    for url in url_list:
         result = page.find('div', attrs={
             'data-domain': url
         })
@@ -81,7 +112,7 @@ def check_urls(bot, job):
                 chat_id=job.context,
                 text="{} is added to contest page".format(url)
             )
-            url_list[job.context].remove(url)
+            remove_from_url_list(url, job.context)
 
 def cb_watch(bot, update, job_queue):
     if not jobs[update.message.chat_id]:
@@ -100,7 +131,6 @@ def stop_watch(bot, update):
         jobs[update.message.chat_id][0].schedule_removal()
         del jobs[update.message.chat_id][0]
         update.message.reply_text("Stopped monitoring")
-
 
 updater = Updater(TELEGRAM_API_TOKEN)
 
