@@ -126,6 +126,7 @@ def add(bot, update, args):
         update.message.reply_text("Already on watchlist")
     else:
         add_to_url_list(url, update.message.chat_id)
+        update.message.reply_text("{} is succesfully added to watchlist".format(url))
 
 def remove(bot, update, args):
     url = url_formatter(args[0])
@@ -135,6 +136,7 @@ def remove(bot, update, args):
         update.message.reply_text("That url is not on the watchlist")
     else:
         remove_from_url_list(url, update.message.chat_id)
+        update.message.reply_text("{} is succesfully removed from the watchlist".format(url))
 
 def get_watchlist(bot, update):
     url_list = get_url_list(update.message.chat_id)
