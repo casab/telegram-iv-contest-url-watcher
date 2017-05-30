@@ -19,3 +19,17 @@ Then open tracker.py and fill the TELEGRAM_API_TOKEN and select a proper CHECK_P
 ```
 python tracker.py
 ```
+
+By adding the telegram bot, you can give these commands;
+```
+To watch a specific website, type;
+  /add url
+To remove a url from the watchlist, type;
+  /remove url
+To get the list of all watched urls, type:
+  /list
+To start monitoring type:
+  /monitor
+To stop monitoring type:
+  /stop
+```
