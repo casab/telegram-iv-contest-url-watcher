@@ -1,5 +1,5 @@
 # Telegram IV Contest URL Watcher
-A telegram bot that checks if your favorite URLs are added to the IV contest page and sends you a messasge if so.
+A telegram bot that checks if your favorite URLs are added to the IV contest page and sends you a message if so.
 
 ## Getting Started
 ### Prerequisites
