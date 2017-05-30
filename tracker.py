@@ -78,7 +78,7 @@ def url_formatter(url):
 
 def check_urls(bot, job):
     r = requests.get('https://instantview.telegram.org/contest')
-    page = BeautifulSoup(r.text, 'html5lib')
+    page = BeautifulSoup(r.text, 'html.parser')
     url_list = get_url_list(job.context)
     for url in url_list:
         result = page.find('div', attrs={

@@ -5,7 +5,6 @@ A telegram bot that checks if your favorite URLs are added to the IV contest pag
 ### Prerequisites
 Python 2 or Python 3 and following libraries(which can be installed from requirements.txt);
 - [beautifulsoup4](https://www.crummy.com/software/BeautifulSoup/)
-- [html5lib](https://github.com/html5lib/html5lib-python)
 - [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
 - [requests](https://github.com/requests/requests)
 
